@@ -63,8 +63,10 @@ three content hashes are compared — upstream, installed, and the lock (last ve
 | Skill removed/renamed upstream | Kept locally, reported once |
 | Installed skill no source provides | Reported as untracked; adopt it into your own repo via `/skills-sync:sync` |
 
-The hook prints nothing (and adds nothing to context) when everything is in sync, and always
-exits 0 — it never blocks session startup. Network failures skip the source and are reported.
+When a sync changes or flags anything, a one-line summary is shown directly in the Claude Code UI
+(`systemMessage`) and a fuller report is handed to Claude to brief you. When everything is in sync
+the hook prints nothing and adds nothing to context. It always exits 0 — it never blocks session
+startup. Network failures skip the source and are reported.
 
 ## CLI
 

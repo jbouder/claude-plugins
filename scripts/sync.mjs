@@ -306,7 +306,11 @@ function hookOutput(report) {
     ...lines.map((l) => `- ${l}`),
     'Briefly tell the user what changed. For conflicts, new available skills, or errors, offer to resolve them (the /skills-sync:sync skill manages sources, installs, adoption, and conflict resolution).',
   ].join('\n');
-  return { hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: context } };
+  return {
+    // Shown directly to the user in the Claude Code UI, independent of the model.
+    systemMessage: `skills-sync: ${lines.join('; ')}`,
+    hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: context },
+  };
 }
 
 // ---------- commands ----------
