@@ -150,16 +150,48 @@ function scanRepos(reposDir, sinceMs) {
   return commits;
 }
 
+function totals(sessions) {
+  const t = {
+    sessions: sessions.length,
+    activeMin: 0,
+    tokens: { in: 0, out: 0, cacheRead: 0 },
+    byModel: {},
+    byRepo: {},
+    byDay: {},
+  };
+  for (const s of sessions) {
+    t.activeMin += s.durationMin || 0;
+    t.tokens.in += s.tokens?.in || 0;
+    t.tokens.out += s.tokens?.out || 0;
+    t.tokens.cacheRead += s.tokens?.cacheRead || 0;
+    for (const m of s.models || []) t.byModel[m] = (t.byModel[m] || 0) + 1;
+    if (s.repo) {
+      const r = (t.byRepo[s.repo] ||= { sessions: 0, activeMin: 0 });
+      r.sessions += 1;
+      r.activeMin += s.durationMin || 0;
+    }
+    const day = (s.ts || '').slice(0, 10);
+    if (day) {
+      const d = (t.byDay[day] ||= { sessions: 0, activeMin: 0 });
+      d.sessions += 1;
+      d.activeMin += s.durationMin || 0;
+    }
+  }
+  return t;
+}
+
 function cmdReport(args) {
   const cfg = loadConfig();
   const i = args.indexOf('--days');
   const days = i >= 0 ? Number(args[i + 1]) || 4 : 4;
   const sinceMs = Date.now() - days * 86400000;
+  const sessions = readJournal(sinceMs);
   const out = {
     generatedAt: new Date().toISOString(),
     sinceDays: days,
     reportsDir: cfg.reportsDir,
-    sessions: readJournal(sinceMs),
+    totals: totals(sessions),
+    sessions,
     commitsByRepo: scanRepos(cfg.reposDir, sinceMs),
   };
   process.stdout.write(JSON.stringify(out, null, 2) + '\n');
