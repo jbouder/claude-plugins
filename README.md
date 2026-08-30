@@ -58,6 +58,7 @@ three content hashes are compared — upstream, installed, and the lock (last ve
 | Upstream changed, installed untouched since last sync | Update automatically, report |
 | Installed edited locally, upstream unchanged | Leave alone, report as locally modified |
 | Both changed | **Conflict** — leave alone, report; resolve via `/skills-sync:sync` |
+| Already installed when tracking begins, differs from upstream | **Pinned** — kept as-is (can't tell a stale copy from a local edit); `install <skill>` takes upstream, or it unpins itself when the two converge |
 | You deleted an installed skill | Respected — reported once, never reinstalled |
 | Skill removed/renamed upstream | Kept locally, reported once |
 | Installed skill no source provides | Reported as untracked; adopt it into your own repo via `/skills-sync:sync` |
@@ -76,7 +77,7 @@ node scripts/sync.mjs add owner/repo [--path skills] [--skills a,b] [--exclude a
 node scripts/sync.mjs remove owner/repo
 node scripts/sync.mjs install <skill>       # install a pending/excluded-by-prompt skill
 node scripts/sync.mjs exclude <skill>       # never install a given upstream skill
-node scripts/sync.mjs relock <skill>|--all  # accept current installed content as the new baseline
+node scripts/sync.mjs relock <skill>|--all  # pin current installed content (never auto-overwritten)
 node scripts/sync.mjs init                  # write a starter manifest
 ```
 

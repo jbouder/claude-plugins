@@ -26,17 +26,19 @@ State lives in:
 | Remove a source | `sync.mjs remove <owner/repo>` |
 | Install a pending new upstream skill | `sync.mjs install <skill>` |
 | Never install a given upstream skill | `sync.mjs exclude <skill>` |
-| Accept current installed content as baseline | `sync.mjs relock <skill>` (or `--all`) |
+| Keep the local version of a skill (pin it) | `sync.mjs relock <skill>` (or `--all`) |
 
-The engine NEVER overwrites local edits: a skill whose installed content differs from the lock is
-left alone and reported as *locally modified* (upstream unchanged) or a *conflict* (both changed).
+The engine NEVER overwrites local content it can't prove is a clean upstream copy:
+- installed edited since last sync + upstream unchanged → *locally modified*, left alone
+- installed edited + upstream changed → *conflict*, left alone
+- installed differs from upstream at first tracking (can't tell stale copy from local edit) → **pinned**: kept as-is, never auto-applied; upstream movement is noted once. `install <skill>` takes upstream and unpins; syncing converges (installed == upstream) also unpins.
 
 ## Resolving a conflict (`resolve <skill>`)
 
 1. Diff installed vs upstream: `diff -ru ~/.claude/skills-sync/cache/<owner>__<repo>/<path>/<skill> ~/.claude/skills/<skill>` — summarize the difference for the user.
 2. Ask which side wins:
    - **Upstream** → `sync.mjs install <skill>` (overwrites local, re-locks).
-   - **Local** → if the source is the user's own repo, copy the installed dir into their local clone of that repo, commit, push, then `sync.mjs sync`. If the source is third-party, either `sync.mjs relock <skill>` (keep local edits, keep tracking; future upstream changes will conflict again) or `sync.mjs exclude <skill>` (stop tracking).
+   - **Local** → if the source is the user's own repo, copy the installed dir into their local clone of that repo, commit, push, then `sync.mjs sync`. If the source is third-party, either `sync.mjs relock <skill>` (pin the local version; upstream changes are noted but never applied) or `sync.mjs exclude <skill>` (stop tracking).
 
 ## Adopting an untracked skill (`adopt <skill>`)
 

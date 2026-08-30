@@ -167,7 +167,7 @@ function runSync(cfg, { network = true, apply = true } = {}) {
   const lock = loadLock();
   const report = {
     updated: [], installed: [], newAvailable: [], conflicts: [], goneUpstream: [],
-    localMods: [], untracked: [], untrackedNew: [], collisions: [], errors: [], removedLocally: [],
+    localMods: [], pinned: [], untracked: [], untrackedNew: [], collisions: [], errors: [], removedLocally: [],
   };
 
   if (network) {
@@ -208,13 +208,31 @@ function runSync(cfg, { network = true, apply = true } = {}) {
     if (entry && entry.removedLocally) delete entry.removedLocally; // it's back
 
     if (!entry) {
-      // Installed before tracking began. Baseline it; a later upstream change syncs normally.
+      // Installed before tracking began. If it matches upstream, track normally; if it
+      // differs we cannot tell a stale version from a local edit — pin it and let the
+      // user decide (install = take upstream, stays pinned = keep local).
       lock.skills[name] = { source: source.repo, hash: installedHash };
-      if (installedHash !== upstreamHash) report.localMods.push(name);
+      if (installedHash !== upstreamHash) {
+        lock.skills[name].pinned = true;
+        lock.skills[name].upstreamSeen = upstreamHash;
+        report.pinned.push(`${name} (differs from upstream — kept; "install ${name}" takes upstream)`);
+      }
       continue;
     }
 
     entry.source = source.repo;
+    if (entry.pinned) {
+      // User chose to keep a local version. Never auto-apply; note when upstream moves.
+      if (installedHash === upstreamHash) {
+        delete entry.pinned;
+        delete entry.upstreamSeen;
+        entry.hash = upstreamHash; // converged again
+      } else if (upstreamHash !== entry.upstreamSeen) {
+        entry.upstreamSeen = upstreamHash;
+        report.pinned.push(`${name} (upstream changed again — still pinned to local)`);
+      }
+      continue;
+    }
     if (installedHash === entry.hash) {
       if (upstreamHash !== entry.hash) {
         if (apply) {
@@ -271,6 +289,7 @@ function summarize(report, { includeQuiet = false } = {}) {
   add('deleted locally (not reinstalled)', report.removedLocally);
   add('name collisions', report.collisions);
   add('sync errors', report.errors);
+  add('pinned to local version (upstream differs)', report.pinned);
   add('new untracked skills (no source)', report.untrackedNew);
   if (includeQuiet) {
     add('locally modified (upstream unchanged)', report.localMods);
@@ -386,8 +405,16 @@ function cmdRelock(args) {
     const hit = claimed.get(name);
     if (!fs.existsSync(installDir)) { delete lock.skills[name]; continue; }
     if (!hit) { console.error(`skipping ${name}: no source provides it`); continue; }
-    lock.skills[name] = { source: hit.source.repo, hash: hashDir(installDir) };
-    console.log(`baselined ${name} at its current installed content`);
+    const installedHash = hashDir(installDir);
+    const upstreamHash = hashDir(hit.dir);
+    lock.skills[name] = { source: hit.source.repo, hash: installedHash };
+    if (installedHash !== upstreamHash) {
+      lock.skills[name].pinned = true;
+      lock.skills[name].upstreamSeen = upstreamHash;
+      console.log(`pinned ${name} to its current installed content (upstream differs; it will not be auto-applied)`);
+    } else {
+      console.log(`baselined ${name} at its current installed content (matches upstream)`);
+    }
   }
   saveLock(lock);
 }
