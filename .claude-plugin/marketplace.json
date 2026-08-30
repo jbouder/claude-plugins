@@ -1,0 +1,14 @@
+{
+  "name": "skills-sync",
+  "description": "Marketplace for the skills-sync plugin — keeps ~/.claude/skills in sync with upstream git repos.",
+  "owner": {
+    "name": "Johnny Bouder"
+  },
+  "plugins": [
+    {
+      "name": "skills-sync",
+      "source": "./",
+      "description": "Keeps your profile-level skills (~/.claude/skills) in sync with their upstream git repos."
+    }
+  ]
+}
