@@ -9,6 +9,11 @@
       "name": "skills-sync",
       "source": "./plugins/skills-sync",
       "description": "Keeps your profile-level skills (~/.claude/skills) in sync with their upstream git repos \u2014 multi-source, hook-driven at session start, never clobbers local edits."
+    },
+    {
+      "name": "standup",
+      "source": "./plugins/standup",
+      "description": "Automatic zero-token work journal via a SessionEnd hook, plus a /standup skill that composes Yesterday/Today from the journal and your git activity."
     }
   ]
 }

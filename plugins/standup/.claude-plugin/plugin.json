@@ -1,0 +1,12 @@
+{
+  "name": "standup",
+  "description": "Automatic work journal for standups. A SessionEnd hook logs each Claude Code session (repo, branch, topic, files edited, commits, duration) with zero token cost; /standup:standup composes yesterday/today from the journal plus your git activity and appends it to a monthly markdown log.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Johnny Bouder"
+  },
+  "homepage": "https://github.com/jbouder/claude-plugins/tree/main/plugins/standup",
+  "repository": "https://github.com/jbouder/claude-plugins",
+  "license": "MIT",
+  "keywords": ["standup", "journal", "worklog", "hooks"]
+}
