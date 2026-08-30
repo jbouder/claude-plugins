@@ -48,7 +48,9 @@ function loadConfig() {
   if (!cfg) return null;
   cfg.sources = Array.isArray(cfg.sources) ? cfg.sources : [];
   cfg.throttleHours = typeof cfg.throttleHours === 'number' ? cfg.throttleHours : 6;
-  cfg.newSkills = ['auto', 'prompt', 'ignore'].includes(cfg.newSkills) ? cfg.newSkills : 'auto';
+  // 'prompt' is the safe default: installing a skill installs model instructions,
+  // so new upstream skills are surfaced for approval unless the user opts into 'auto'.
+  cfg.newSkills = ['auto', 'prompt', 'ignore'].includes(cfg.newSkills) ? cfg.newSkills : 'prompt';
   return cfg;
 }
 
@@ -428,7 +430,7 @@ function cmdInit() {
   writeJson(CONFIG_PATH, {
     sources: [{ repo: 'OWNER/skills-repo', path: '.', skills: '*' }],
     throttleHours: 6,
-    newSkills: 'auto',
+    newSkills: 'prompt',
   });
   console.log(`wrote starter manifest to ${CONFIG_PATH} — edit the sources, then run: sync`);
 }

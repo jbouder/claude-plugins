@@ -5,7 +5,8 @@ git repos they came from — your own skills repo, [cloudflare/skills](https://g
 or any other repo that publishes `<skill>/SKILL.md` directories.
 
 - **SessionStart hook** — at session start (throttled, default every 6h) it fetches each source,
-  auto-applies safe updates, auto-installs new upstream skills, and tells Claude what changed.
+  auto-applies safe updates, surfaces new upstream skills (or auto-installs them if you opt in),
+  and tells Claude what changed.
 - **Never clobbers your edits** — a content-hash lock tracks the last-applied upstream version;
   a skill you edited locally is left alone and reported instead.
 - **`/skills-sync:sync` skill** — interactive management: status, force sync, add/remove sources,
@@ -30,7 +31,7 @@ Create `~/.claude/skills-sync.json` (or run `node <plugin>/scripts/sync.mjs init
     { "repo": "pbakaus/impeccable",    "path": ".claude/skills", "skills": ["impeccable"] }
   ],
   "throttleHours": 6,
-  "newSkills": "auto"
+  "newSkills": "prompt"
 }
 ```
 
@@ -38,11 +39,11 @@ Create `~/.claude/skills-sync.json` (or run `node <plugin>/scripts/sync.mjs init
 |---|---|
 | `sources[].repo` | `owner/repo` on GitHub (any git host via `url`) |
 | `sources[].path` | Subdirectory containing the skill dirs (default `.`) |
-| `sources[].skills` | `"*"` = track every skill in the source (new upstream skills install automatically), or an explicit list |
+| `sources[].skills` | `"*"` = track every skill in the source (new upstream skills are picked up automatically), or an explicit list |
 | `sources[].exclude` | Skills never to install/track |
 | `sources[].url` | Override clone URL (private repos over SSH, non-GitHub hosts) |
 | `throttleHours` | Minimum hours between hook-triggered syncs (default 6) |
-| `newSkills` | `auto` (default) install new upstream skills · `prompt` report and let Claude ask you · `ignore` |
+| `newSkills` | `prompt` (default) report new upstream skills and let Claude ask you · `auto` install them immediately · `ignore` |
 
 When two sources provide the same skill name, the first source in the list wins and the collision
 is reported.
@@ -54,7 +55,7 @@ three content hashes are compared — upstream, installed, and the lock (last ve
 
 | Situation | Action |
 |---|---|
-| Not installed, new upstream | Install (`newSkills: auto`) or report (`prompt`) |
+| Not installed, new upstream | Report and ask (`newSkills: prompt`) or install (`auto`) |
 | Upstream changed, installed untouched since last sync | Update automatically, report |
 | Installed edited locally, upstream unchanged | Leave alone, report as locally modified |
 | Both changed | **Conflict** — leave alone, report; resolve via `/skills-sync:sync` |
@@ -88,6 +89,15 @@ node scripts/sync.mjs init                  # write a starter manifest
 - Marketplace auto-update for third-party plugins is off by default; the plugin still syncs your
   *skills* every session regardless. To update the plugin itself: `/plugin marketplace update skills-sync`.
 - Test overrides for development: `SKILLS_SYNC_CONFIG`, `SKILLS_SYNC_STATE`, `SKILLS_SYNC_SKILLS_DIR`.
+
+## Security model
+
+Adding a source means trusting that repo with model instructions: skills shape how Claude
+behaves, and this plugin copies them into `~/.claude/skills` for every future session. Only add
+repos you'd trust with your editor config. The default `newSkills: "prompt"` surfaces each new
+upstream skill for your approval before it is installed; `"auto"` is an explicit opt-in per
+manifest. Updates to skills you already installed from a source are applied automatically —
+pin (`relock`) or `exclude` a skill to stop that.
 
 ## License
 

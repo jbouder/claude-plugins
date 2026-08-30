@@ -1,7 +1,7 @@
 {
   "name": "skills-sync",
   "description": "Keeps your profile-level skills (~/.claude/skills) in sync with their upstream git repos. Auto-installs new upstream skills, applies safe updates at session start, and never overwrites local edits.",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "author": {
     "name": "Johnny Bouder"
   },
