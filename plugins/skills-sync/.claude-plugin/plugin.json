@@ -1,12 +1,12 @@
 {
   "name": "skills-sync",
   "description": "Keeps your profile-level skills (~/.claude/skills) in sync with their upstream git repos. Auto-installs new upstream skills, applies safe updates at session start, and never overwrites local edits.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "Johnny Bouder"
   },
-  "homepage": "https://github.com/jbouder/skills-sync",
-  "repository": "https://github.com/jbouder/skills-sync",
+  "homepage": "https://github.com/jbouder/claude-plugins/tree/main/plugins/skills-sync",
+  "repository": "https://github.com/jbouder/claude-plugins",
   "license": "MIT",
   "keywords": [
     "skills",

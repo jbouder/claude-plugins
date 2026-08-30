@@ -9,7 +9,7 @@ argument-hint: "[status | sync | add <owner/repo> | remove <owner/repo> | instal
 A SessionStart hook keeps `~/.claude/skills` synced from upstream git repos. This skill drives
 the same engine interactively via `node "${CLAUDE_PLUGIN_ROOT}/scripts/sync.mjs" <command>`.
 (If `${CLAUDE_PLUGIN_ROOT}` is not substituted, locate the script with:
-`ls ~/.claude/plugins/cache/*/skills-sync*/**/scripts/sync.mjs 2>/dev/null | head -1`.)
+`ls ~/.claude/plugins/cache/*/skills-sync/*/scripts/sync.mjs ~/.claude/plugins/cache/*/skills-sync/scripts/sync.mjs 2>/dev/null | head -1`.)
 
 State lives in:
 - **Manifest** `~/.claude/skills-sync.json` — sources (`repo`, `path`, `skills` list or `"*"`, `exclude`, optional `url`), `throttleHours`, `newSkills` (`auto` | `prompt` | `ignore`).

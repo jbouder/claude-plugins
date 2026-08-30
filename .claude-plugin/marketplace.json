@@ -1,14 +1,14 @@
 {
-  "name": "skills-sync",
-  "description": "Marketplace for the skills-sync plugin — keeps ~/.claude/skills in sync with upstream git repos.",
+  "name": "jbouder-plugins",
+  "description": "Johnny Bouder's Claude Code plugins.",
   "owner": {
     "name": "Johnny Bouder"
   },
   "plugins": [
     {
       "name": "skills-sync",
-      "source": "./",
-      "description": "Keeps your profile-level skills (~/.claude/skills) in sync with their upstream git repos."
+      "source": "./plugins/skills-sync",
+      "description": "Keeps your profile-level skills (~/.claude/skills) in sync with their upstream git repos \u2014 multi-source, hook-driven at session start, never clobbers local edits."
     }
   ]
 }
