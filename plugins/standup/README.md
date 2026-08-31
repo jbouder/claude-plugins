@@ -18,6 +18,19 @@ Automatic work journal for standups, with zero token cost for the tracking.
 /plugin install standup@jbouder-plugins
 ```
 
+## Use
+
+The journal writes itself — every session is logged by the hook with no tokens spent.
+When you want a report:
+
+```
+/standup:standup       # since your last working day (covers weekends)
+/standup:standup 7     # look back 7 days
+```
+
+The bare `/standup` also works as long as no other skill or command claims that name.
+Plain English works too — "what did I work on this week?", "give me a standup".
+
 ## Configure (optional)
 
 `~/.claude/standup.json`:

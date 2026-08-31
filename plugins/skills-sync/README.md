@@ -19,6 +19,22 @@ or any other repo that publishes `<skill>/SKILL.md` directories.
 /plugin install skills-sync@jbouder-plugins
 ```
 
+## Use
+
+The hook runs on its own at session start. For everything interactive, invoke the skill:
+
+```
+/skills-sync:sync                        # sync now, ignoring the throttle
+/skills-sync:sync status                 # what's tracked, pending, modified, conflicted
+/skills-sync:sync add cloudflare/skills  # start tracking a new source repo
+/skills-sync:sync install <skill>        # install a new upstream skill you were prompted about
+/skills-sync:sync resolve <skill>        # walk through a conflict
+/skills-sync:sync adopt <skill>          # move an untracked local skill into your own repo
+```
+
+The bare `/sync` also works as long as no other skill or command claims that name. Plain English
+works too — "sync my skills", "skill sync status", "add pbakaus/impeccable as a skill source".
+
 ## Configure
 
 Create `~/.claude/skills-sync.json` (or run `node <plugin>/scripts/sync.mjs init` for a starter):
