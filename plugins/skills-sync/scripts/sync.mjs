@@ -3,7 +3,8 @@
 //
 // Modes:
 //   sync.mjs hook              throttled sync for the SessionStart hook; JSON on stdout
-//                              only when something happened, always exits 0
+//                              only when something happened, always exits 0. On the very
+//                              first run (no manifest) writes an empty one and says so.
 //   sync.mjs sync              full sync now (ignores throttle), human-readable report
 //   sync.mjs status [--fetch]  report state without changing anything
 //   sync.mjs add <owner/repo> [--path <p>] [--skills a,b] [--exclude a,b] [--url <git-url>]
@@ -318,13 +319,31 @@ function hookOutput(report) {
 // ---------- commands ----------
 
 function cmdHook() {
+  if (!fs.existsSync(CONFIG_PATH)) return bootstrapManifest();
   const cfg = loadConfig();
-  if (!cfg || !cfg.sources.length) return; // unconfigured: stay silent
+  if (!cfg || !cfg.sources.length) return; // configured but no sources: stay silent
   const lock = loadLock();
   if (lock.lastRun && Date.now() - Date.parse(lock.lastRun) < cfg.throttleHours * 3600 * 1000) return;
   const report = runSync(cfg);
   const out = hookOutput(report);
   if (out) process.stdout.write(JSON.stringify(out) + '\n');
+}
+
+// First run after install: write an empty manifest so the user has something to edit, and
+// tell them (once) how to add a source. Later runs see the file and stay silent until it
+// has sources.
+function bootstrapManifest() {
+  writeJson(CONFIG_PATH, { sources: [], throttleHours: 6, newSkills: 'prompt' });
+  const context = [
+    `[skills-sync] First run: wrote an empty manifest to ${CONFIG_PATH}. No skills are being synced yet.`,
+    'Tell the user skills-sync is installed but has no sources, and offer to add one — e.g.',
+    '`/skills-sync:sync add <owner/repo>` (their own skills repo, or cloudflare/skills with --path skills).',
+    'Do not add a source without asking; each source is a repo trusted with model instructions.',
+  ].join('\n');
+  process.stdout.write(JSON.stringify({
+    systemMessage: `skills-sync: installed, no sources yet — run /skills-sync:sync add <owner/repo> to start syncing`,
+    hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: context },
+  }) + '\n');
 }
 
 function cmdSync() {
@@ -348,7 +367,7 @@ function cmdStatus(args) {
 function cmdAdd(args) {
   const repo = args.find((a) => !a.startsWith('--'));
   if (!/^[\w.-]+\/[\w.-]+$/.test(repo || '')) die('usage: add <owner/repo> [--path <p>] [--skills a,b] [--exclude a,b] [--url <git-url>]');
-  const cfg = loadConfig() || { sources: [], throttleHours: 6, newSkills: 'auto' };
+  const cfg = loadConfig() || { sources: [], throttleHours: 6, newSkills: 'prompt' };
   if (cfg.sources.some((s) => s.repo === repo)) die(`source ${repo} already present`);
   const opt = (name) => { const i = args.indexOf(`--${name}`); return i >= 0 ? args[i + 1] : undefined; };
   const source = { repo, path: opt('path') || '.', skills: opt('skills') ? opt('skills').split(',') : '*' };
